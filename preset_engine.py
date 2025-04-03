@@ -1,10 +1,13 @@
+# preset_engine.py - version chillamp-selector2.0
+
+from base_bassistes import base_bassistes
 from profils_sonores import profils_sonores
 from amplis_basse_etendus import amplis_basse
 
 def adapter_eq_ampli(ampli_nom, profil_cible):
     if ampli_nom not in amplis_basse:
         raise ValueError(f"Ampli inconnu : {ampli_nom}")
-    
+
     ampli_data = amplis_basse[ampli_nom]
     eq_bandes = ampli_data["eq"]
     neutral = ampli_data["neutral"]
@@ -23,6 +26,22 @@ def adapter_eq_ampli(ampli_nom, profil_cible):
             delta = 0
 
         base = neutral.get(bande, 50)
-        reglages[bande] = max(0, min(100, base + delta))  # clamp 0-100
+        reglages[bande] = max(0, min(100, base + delta))
 
     return reglages
+
+def get_presets_for_combination(bassiste, basse, ampli, effets, baffle):
+    if bassiste not in base_bassistes:
+        raise ValueError(f"Bassiste '{bassiste}' non trouvé dans la base de profils.")
+
+    profil_sonore = base_bassistes[bassiste]["caractere"].split('.')[-1].strip()
+    reglage_ampli = adapter_eq_ampli(ampli, profil_sonore)
+
+    return {
+        "bassiste": bassiste,
+        "basse": {"modele": basse, "type": "active"},  # Placeholder
+        "ampli": {"modele": ampli, "reglages": reglage_ampli},
+        "effets": effets,  # Liste brute pour l'instant
+        "baffle": {"modele": baffle, "profil": "standard"},
+        "chaine_signal": [basse] + effets + [ampli, baffle]
+    }
