@@ -2,63 +2,60 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Chillamp Selector 2.0</title>
-  <style>
-    body {
-      font-family: sans-serif;
-      background: #f2f2f2;
-      padding: 20px;
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#1e3a8a',
+            secondary: '#fcd34d',
+          },
+        }
+      }
     }
-    .container {
-      max-width: 700px;
-      background: #fff;
-      padding: 20px;
-      margin: auto;
-      border-radius: 8px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-    }
-    h1 {
-      text-align: center;
-    }
-    label {
-      display: block;
-      margin-top: 15px;
-    }
-    select, button {
-      width: 100%;
-      padding: 10px;
-      margin-top: 5px;
-    }
-    #effets-details {
-      background: #fafafa;
-      border: 1px solid #ccc;
-      padding: 10px;
-      margin-top: 20px;
-      border-radius: 5px;
-    }
-  </style>
+  </script>
 </head>
-<body>
-  <div class="container">
-    <h1>🎛 Chillamp Selector 2.0</h1>
-    <label for="bassiste">Bassiste :</label>
-    <select id="bassiste"></select>
+<body class="bg-gray-100 text-gray-800 relative overflow-hidden">
 
-    <label for="basse">Basse :</label>
-    <select id="basse"></select>
+  <!-- Filigrane Fender -->
+  <div class="absolute inset-0 opacity-10 pointer-events-none select-none">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/8/83/Fender_Precision_Bass.png"
+         alt="Fender Precision Bass"
+         class="absolute bottom-0 right-0 w-[400px] md:w-[500px] rotate-[-10deg]">
+  </div>
 
-    <label for="ampli">Ampli :</label>
-    <select id="ampli"></select>
+  <div class="max-w-3xl mx-auto mt-10 p-6 bg-white rounded-2xl shadow-lg relative z-10">
+    <h1 class="text-3xl font-bold text-center mb-6 text-primary">🎸 Chillamp Selector 2.0</h1>
 
-    <label for="effets">Effets :</label>
-    <select id="effets" multiple size="5"></select>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div>
+        <label class="block font-semibold mb-1">Bassiste</label>
+        <select id="bassiste" class="w-full p-2 border rounded-md"></select>
+      </div>
+      <div>
+        <label class="block font-semibold mb-1">Basse</label>
+        <select id="basse" class="w-full p-2 border rounded-md"></select>
+      </div>
+      <div>
+        <label class="block font-semibold mb-1">Ampli</label>
+        <select id="ampli" class="w-full p-2 border rounded-md"></select>
+      </div>
+      <div>
+        <label class="block font-semibold mb-1">Baffle</label>
+        <select id="baffle" class="w-full p-2 border rounded-md"></select>
+      </div>
+      <div class="md:col-span-2">
+        <label class="block font-semibold mb-1">Effets</label>
+        <select id="effets" multiple size="5" class="w-full p-2 border rounded-md"></select>
+      </div>
+    </div>
 
-    <label for="baffle">Baffle :</label>
-    <select id="baffle"></select>
+    <button id="generer" class="w-full mt-6 py-3 bg-primary text-white font-semibold rounded-lg hover:bg-blue-800 transition">🎼 Générer le PDF</button>
 
-    <button id="generer">Générer le PDF</button>
-
-    <div id="effets-details"></div>
+    <div id="effets-details" class="mt-8"></div>
   </div>
 
   <script>
@@ -114,13 +111,17 @@
       const preset = await res.json();
 
       const zone = document.getElementById("effets-details");
-      zone.innerHTML = "<h3>Détails des effets :</h3>";
+      zone.innerHTML = "";
 
       preset.effets.forEach(effet => {
         const bloc = document.createElement("div");
-        bloc.innerHTML = `<strong>${effet.nom}</strong><br>${effet.description}<ul>`;
+        bloc.className = "bg-gray-50 border border-gray-300 p-4 mb-4 rounded-xl";
+        bloc.innerHTML = `
+          <h2 class="text-lg font-bold text-secondary mb-1">${effet.nom}</h2>
+          <p class="text-sm italic mb-2">${effet.description}</p>
+          <ul class="text-sm list-disc list-inside">`;
         for (const [ctrl, val] of Object.entries(effet.controls)) {
-          bloc.innerHTML += `<li>${ctrl} (${val.type}): ${val.plage} → ${val.effet}</li>`;
+          bloc.innerHTML += `<li><strong>${ctrl}</strong> (${val.type}) : ${val.plage} → <em>${val.effet}</em></li>`;
         }
         bloc.innerHTML += "</ul>";
         zone.appendChild(bloc);
