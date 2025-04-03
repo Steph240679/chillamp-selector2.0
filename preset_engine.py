@@ -1,8 +1,7 @@
-# preset_engine.py - version chillamp-selector2.0
-
 from base_bassistes import base_bassistes
 from profils_sonores import profils_sonores
 from amplis_basse_etendus import amplis_basse
+from effets_details import effets_details  # si tu veux ajouter les controls plus tard
 
 def adapter_eq_ampli(ampli_nom, profil_cible):
     if ampli_nom not in amplis_basse:
@@ -32,16 +31,33 @@ def adapter_eq_ampli(ampli_nom, profil_cible):
 
 def get_presets_for_combination(bassiste, basse, ampli, effets, baffle):
     if bassiste not in base_bassistes:
-        raise ValueError(f"Bassiste '{bassiste}' non trouvé dans la base de profils.")
+        raise ValueError(f"Bassiste '{bassiste}' non trouvé.")
 
+    # Extraction du profil sonore à partir du caractère
     profil_sonore = base_bassistes[bassiste]["caractere"].split('.')[-1].strip()
+
+    # Génération des réglages par module
     reglage_ampli = adapter_eq_ampli(ampli, profil_sonore)
 
+    # Construction brute (on pourra raffiner basse, effets et baffle)
     return {
         "bassiste": bassiste,
-        "basse": {"modele": basse, "type": "active"},  # Placeholder
-        "ampli": {"modele": ampli, "reglages": reglage_ampli},
-        "effets": effets,  # Liste brute pour l'instant
-        "baffle": {"modele": baffle, "profil": "standard"},
+        "basse": {
+            "modele": basse,
+            "type": "active",  # à affiner plus tard
+            "reglages": {
+                "volume": 80,
+                "tone": 60
+            }
+        },
+        "ampli": {
+            "modele": ampli,
+            "reglages": reglage_ampli
+        },
+        "effets": [{"nom": e} for e in effets],
+        "baffle": {
+            "modele": baffle,
+            "profil": "standard"
+        },
         "chaine_signal": [basse] + effets + [ampli, baffle]
     }
