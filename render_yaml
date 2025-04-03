@@ -2,7 +2,7 @@ services:
   - type: web
     name: chillamp-selector2.0
     env: python
-    buildCommand: pip install -r backend/requirements.txt
+    buildCommand: pip install -r requirements.txt
     startCommand: gunicorn --chdir backend app:app
     envVars:
       - key: FLASK_DEBUG
