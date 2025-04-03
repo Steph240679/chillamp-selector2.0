@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Chillamp Selector 2.0</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      background: #f2f2f2;
+      padding: 20px;
+    }
+    .container {
+      max-width: 700px;
+      background: #fff;
+      padding: 20px;
+      margin: auto;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    h1 {
+      text-align: center;
+    }
+    label {
+      display: block;
+      margin-top: 15px;
+    }
+    select, button {
+      width: 100%;
+      padding: 10px;
+      margin-top: 5px;
+    }
+    #effets-details {
+      background: #fafafa;
+      border: 1px solid #ccc;
+      padding: 10px;
+      margin-top: 20px;
+      border-radius: 5px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🎛 Chillamp Selector 2.0</h1>
+    <label for="bassiste">Bassiste :</label>
+    <select id="bassiste"></select>
+
+    <label for="basse">Basse :</label>
+    <select id="basse"></select>
+
+    <label for="ampli">Ampli :</label>
+    <select id="ampli"></select>
+
+    <label for="effets">Effets :</label>
+    <select id="effets" multiple size="5"></select>
+
+    <label for="baffle">Baffle :</label>
+    <select id="baffle"></select>
+
+    <button id="generer">Générer le PDF</button>
+
+    <div id="effets-details"></div>
+  </div>
+
+  <script>
+    async function chargerListe(endpoint, selectId, labelFn) {
+      const res = await fetch(endpoint);
+      const data = await res.json();
+      const select = document.getElementById(selectId);
+      data.forEach(item => {
+        const opt = document.createElement("option");
+        opt.value = item.cle || item;
+        opt.text = labelFn ? labelFn(item) : item;
+        select.appendChild(opt);
+      });
+    }
+
+    async function genererPDF() {
+      const bassiste = document.getElementById("bassiste").value;
+      const basse = document.getElementById("basse").value;
+      const ampli = document.getElementById("ampli").value;
+      const baffle = document.getElementById("baffle").value;
+      const effets = Array.from(document.getElementById("effets").selectedOptions).map(e => e.value);
+
+      const res = await fetch("/api/preset/pdf", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({ bassiste, basse, ampli, effets, baffle })
+      });
+
+      if (!res.ok) return alert("Erreur lors de la génération du PDF");
+
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "preset_chillamp.pdf";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    }
+
+    async function afficherDetailsEffets() {
+      const effets = Array.from(document.getElementById("effets").selectedOptions).map(e => e.value);
+      const basse = document.getElementById("basse").value;
+      const ampli = document.getElementById("ampli").value;
+      const baffle = document.getElementById("baffle").value;
+      const bassiste = document.getElementById("bassiste").value;
+
+      const res = await fetch("/api/preset", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({ bassiste, basse, ampli, effets, baffle })
+      });
+      const preset = await res.json();
+
+      const zone = document.getElementById("effets-details");
+      zone.innerHTML = "<h3>Détails des effets :</h3>";
+
+      preset.effets.forEach(effet => {
+        const bloc = document.createElement("div");
+        bloc.innerHTML = `<strong>${effet.nom}</strong><br>${effet.description}<ul>`;
+        for (const [ctrl, val] of Object.entries(effet.controls)) {
+          bloc.innerHTML += `<li>${ctrl} (${val.type}): ${val.plage} → ${val.effet}</li>`;
+        }
+        bloc.innerHTML += "</ul>";
+        zone.appendChild(bloc);
+      });
+    }
+
+    document.getElementById("generer").addEventListener("click", genererPDF);
+    document.getElementById("effets").addEventListener("change", afficherDetailsEffets);
+
+    chargerListe("/api/liste_bassistes", "bassiste", i => `${i.nom || i}`);
+    chargerListe("/api/liste_basses", "basse");
+    chargerListe("/api/liste_amplis", "ampli");
+    chargerListe("/api/liste_effets", "effets");
+    chargerListe("/api/liste_baffles", "baffle");
+  </script>
+</body>
+</html>
