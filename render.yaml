@@ -1,11 +1,12 @@
 services:
   - type: web
-    name: chillamp-selector2.0
+    name: chillamp-selector
     env: python
     buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn --chdir backend app:app
-    envVars:
-      - key: FLASK_DEBUG
-        value: "0"
+    startCommand: gunicorn backend.app:app --bind 0.0.0.0:$PORT
     plan: free
-    autoDeploy: true
+    envVars:
+  - key: FLASK_ENV
+    value: production
+  - key: FLASK_DEBUG
+    value: "0"
